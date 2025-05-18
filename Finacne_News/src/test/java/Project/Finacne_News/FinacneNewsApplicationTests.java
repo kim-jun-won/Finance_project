@@ -1,4 +1,4 @@
-package com.example.Finacne_News;
+package Project.Finacne_News;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
