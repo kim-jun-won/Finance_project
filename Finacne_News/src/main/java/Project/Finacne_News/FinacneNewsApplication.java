@@ -1,4 +1,4 @@
-package com.example.Finacne_News;
+package Project.Finacne_News;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
