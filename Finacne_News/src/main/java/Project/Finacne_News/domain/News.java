@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.security.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -22,10 +23,13 @@ public class News {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    @Column(columnDefinition = "TEXT")
+    private String processedContent;  // 하이라이팅이 적용된 HTML 컨텐츠
+
     private String publisher;
 
     @Column(name = "published_at")
-    private Timestamp publishedAt;
+    private LocalDateTime publishedAt;
 
     // 연관 관계 매핑
     @OneToMany(mappedBy = "news")

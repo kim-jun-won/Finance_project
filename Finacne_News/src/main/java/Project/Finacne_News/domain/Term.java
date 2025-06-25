@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -22,7 +23,15 @@ public class Term {
 
     private String category;
 
-    // === 연관관계 ===
+    @Column(length = 2000)
+    private String description;  // 용어 설명
+
+    @Column(length = 500)
+    private String source;      // 용어 출처
+
+    private LocalDateTime lastUpdated;  // 마지막 업데이트 시간
+
+    // === 연관관계 === //
 
     @OneToMany(mappedBy = "term", cascade = CascadeType.ALL)
     private List<Glossary> glossaries;

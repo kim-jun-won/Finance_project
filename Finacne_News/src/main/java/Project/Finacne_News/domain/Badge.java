@@ -10,7 +10,6 @@ import java.util.List;
 @Getter @Setter
 @Table(name = "badges")
 public class Badge {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "badge_id")
