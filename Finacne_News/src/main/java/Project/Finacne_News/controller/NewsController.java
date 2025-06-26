@@ -9,7 +9,6 @@
  *
  * */
 
-
 package Project.Finacne_News.controller;
 
 import Project.Finacne_News.domain.News;
@@ -28,11 +27,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/news")
+@RequestMapping
 @RequiredArgsConstructor
 @Tag(name = "뉴스 API", description = "뉴스 관리를 위한 API")
 public class NewsController {
@@ -45,7 +45,7 @@ public class NewsController {
                     content = @Content(schema = @Schema(implementation = Long.class))),
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
-    @PostMapping
+    @PostMapping("/api/news")
     public ResponseEntity<Long> createNews(@RequestBody NewsRequestDto newsRequest) {
         News news = new News();
         news.setTitle(newsRequest.getTitle());
@@ -58,7 +58,7 @@ public class NewsController {
     }
 
     @Operation(summary = "뉴스 전체 조회", description = "모든 뉴스 기사를 조회합니다.")
-    @GetMapping
+    @GetMapping("/api/news")
     public ResponseEntity<List<NewsResponseDto>> getAllNews() {
         List<News> newsList = newsService.getAllNews();
         List<NewsResponseDto> responseDtos = newsList.stream()
@@ -73,22 +73,25 @@ public class NewsController {
         return ResponseEntity.ok(responseDtos);
     }
 
-    @Operation(summary = "뉴스 상세 조회", description = "특정 ID의 뉴스 기사를 조회합니다.")
-    @GetMapping("/{id}")
+    @Operation(summary = "뉴스 상세 조회", description = "특정 ID의 뉴스 기사를 조회하며, 본문 내 금융 용어는 강조되어 반환됩니다.")
+    @GetMapping("/api/news/{id}")
     public ResponseEntity<NewsResponseDto> getNewsById(@PathVariable Long id) {
-        Optional<News> newsOptional = newsService.getNewsById(id);
-        if (newsOptional.isPresent()) {
-            News news = newsOptional.get();
+        try {
+            News news = newsService.getNewsWithHighlight(id); // 용어 강조된 뉴스 가져오기
+
             NewsResponseDto responseDto = NewsResponseDto.builder()
                     .id(news.getId())
                     .title(news.getTitle())
-                    .content(news.getContent())
+                    .content(news.getContent()) // 강조된 콘텐츠 포함
                     .publisher(news.getPublisher())
                     .publishedAt(news.getPublishedAt())
                     .build();
+
             return ResponseEntity.ok(responseDto);
-        } else {
+        } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         }
     }
+
+
 }

@@ -211,6 +211,106 @@
         .indicator button.active {
             background-color: #003675;
         }
+
+        .news-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content.news-style {
+            background: white;
+            padding: 30px 35px;
+            border-radius: 16px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            width: 600px;
+            font-family: 'Noto Sans KR', sans-serif;
+            animation: fadeUp 0.5s ease forwards;
+            position: relative;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .news-meta {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .news-body {
+            font-size: 1.05rem;
+            color: #333;
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 18px;
+            right: 24px;
+            border: none;
+            background: none;
+            font-size: 1.1rem;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .news-body mark {
+            background-color: #e0f3ff;
+            color: #0057a0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+
+        .news-meta {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .news-body {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #333;
+            white-space: pre-line;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .news-modal {
+            animation: fadeInBg 0.5s ease;
+        }
+
+        .modal-content {
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInBg {
+            from { background-color: rgba(0,0,0,0); }
+            to { background-color: rgba(0,0,0,0.4); }
+        }
+
     </style>
     <script>
         function toggleIssueTab(tabName) {
@@ -222,6 +322,8 @@
         }
         window.addEventListener('DOMContentLoaded', () => {
             toggleIssueTab('issue-tab-finance');
+            loadTodayNews(); // 이 부분 꼭 추가
+
             const sections = document.querySelectorAll('section');
             const indicators = document.querySelectorAll('.indicator button');
             document.getElementById('fullpage').addEventListener('scroll', () => {
@@ -232,12 +334,118 @@
                 });
             });
         });
+
         function scrollToSection(i) {
             document.getElementById('fullpage').scrollTo({
                 top: i * window.innerHeight,
                 behavior: 'smooth'
             });
         }
+
+        async function loadTodayNews() {
+            const response = await fetch('/api/news');
+            const newsList = await response.json();
+
+            const container = document.getElementById('issue-tab-finance');
+            container.innerHTML = '';
+
+            newsList.forEach(news => {
+                const card = document.createElement('div');
+                card.className = 'issue-card';
+                card.innerHTML = `
+                    <h3 onclick="loadNewsDetail(${news.id})">${news.title}</h3>
+                    <p>${news.publisher} | ${new Date(news.publishedAt).toLocaleDateString()}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function loadNewsDetail(newsId) {
+            const response = await fetch(`/api/news/${newsId}`);
+            const news = await response.json();
+
+            const modal = document.createElement('div');
+            modal.className = 'news-modal';modal.innerHTML = `
+              <div class="modal-content news-style">
+                <button class="close-btn" onclick="document.body.removeChild(this.parentNode.parentNode)">✖</button>
+                <h2>${news.title}</h2>
+                <div class="news-meta">${news.publisher} | ${new Date(news.publishedAt).toLocaleDateString()}</div>
+                <div class="news-body">${news.content}</div>
+              </div>
+            `;
+            document.body.appendChild(modal);
+
+            // 강조된 단어 클릭 이벤트 추가
+            document.querySelectorAll('.news-body mark').forEach(el => {
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', () => showTermPopup(el.innerText));
+            });
+        }
+        async function showTermPopup(term) {
+            // 이전에 열려 있던 용어 모달이 있다면 제거
+            const existingTermModal = document.getElementById('term-modal');
+            if (existingTermModal) {
+                document.body.removeChild(existingTermModal);
+            }
+
+            try {
+                const response = await fetch(`/api/terms/${encodeURIComponent(term)}`);
+                if (!response.ok) throw new Error("Not found");
+
+                const data = await response.json();
+
+                const modal = document.createElement('div');
+                modal.className = 'news-modal';
+                modal.id = 'term-modal'; // ✅ 용어 전용 모달 ID
+                modal.innerHTML = `
+                  <div class="modal-content news-style">
+                    <button class="close-btn" onclick="document.body.removeChild(this.parentNode.parentNode)">✖</button>
+                    <h2>📘 용어 해설: ${data.term}</h2>
+                    <div class="news-body">${data.description}</div>
+                    ${data.example ? `<div class="term-extra"><strong>예시:</strong> ${data.example}</div>` : ''}
+                  </div>
+                `;
+                document.body.appendChild(modal);
+            } catch (e) {
+                // 실패 시도에도 이전 용어 모달 제거
+                const existingErrorModal = document.getElementById('term-modal');
+                if (existingErrorModal) {
+                    document.body.removeChild(existingErrorModal);
+                }
+
+                const modal = document.createElement('div');
+                modal.className = 'news-modal';
+                modal.id = 'term-modal';
+                modal.innerHTML = `
+                  <div class="modal-content news-style">
+                    <button class="close-btn" onclick="document.body.removeChild(this.parentNode.parentNode)">✖</button>
+                    <h2>❗ 용어 정보를 찾을 수 없습니다.</h2>
+                    <div class="news-body">"${term}"에 대한 설명이 없습니다.</div>
+                  </div>
+                `;
+                document.body.appendChild(modal);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                // 우선 term-modal이 있으면 그것만 닫는다
+                const termModal = document.getElementById('term-modal');
+                if (termModal) {
+                    document.body.removeChild(termModal);
+                    return; // ❗뉴스 모달은 유지
+                }
+
+                // term-modal이 없고, 뉴스 모달이 있을 때만 닫는다
+                const newsModal = document.querySelector('.news-modal');
+                if (newsModal) {
+                    document.body.removeChild(newsModal);
+                }
+            }
+        });
+
+
+
     </script>
 </head>
 <body>

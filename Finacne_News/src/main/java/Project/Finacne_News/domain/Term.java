@@ -17,7 +17,7 @@ public class Term {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String word;
+    private String term;
 
     private Integer frequency;
 
@@ -26,9 +26,7 @@ public class Term {
     @Column(length = 2000)
     private String description;  // 용어 설명
 
-    @Column(length = 500)
-    private String source;      // 용어 출처
-
+    @Column(name = "created_at")
     private LocalDateTime lastUpdated;  // 마지막 업데이트 시간
 
     // === 연관관계 === //
@@ -41,5 +39,4 @@ public class Term {
 
     @OneToMany(mappedBy = "term", cascade = CascadeType.ALL)
     private List<QuizTerm> quizTerms;
-
 }
