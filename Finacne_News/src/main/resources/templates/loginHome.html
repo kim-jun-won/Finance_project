@@ -211,7 +211,6 @@
         .indicator button.active {
             background-color: #003675;
         }
-
         .news-modal {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -219,7 +218,6 @@
             display: flex; justify-content: center; align-items: center;
             z-index: 9999;
         }
-
         .modal-content.news-style {
             background: white;
             padding: 30px 35px;
@@ -230,27 +228,23 @@
             animation: fadeUp 0.5s ease forwards;
             position: relative;
         }
-
         .modal-title {
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 10px;
             line-height: 1.4;
         }
-
         .news-meta {
             font-size: 0.9rem;
             color: #888;
             margin-bottom: 20px;
         }
-
         .news-body {
             font-size: 1.05rem;
             color: #333;
             line-height: 1.8;
             white-space: pre-line;
         }
-
         .close-btn {
             position: absolute;
             top: 18px;
@@ -261,11 +255,9 @@
             color: #aaa;
             cursor: pointer;
         }
-
         .close-btn:hover {
             color: #333;
         }
-
         .news-body mark {
             background-color: #e0f3ff;
             color: #0057a0;
@@ -273,8 +265,6 @@
             border-radius: 3px;
             font-weight: 600;
         }
-
-
         .news-meta {
             font-size: 0.9rem;
             color: #666;
@@ -286,7 +276,6 @@
             color: #333;
             white-space: pre-line;
         }
-
         @keyframes fadeUp {
             0% {
                 opacity: 0;
@@ -297,24 +286,26 @@
                 transform: translateY(0);
             }
         }
-
         .news-modal {
             animation: fadeInBg 0.5s ease;
         }
-
         .modal-content {
             animation: fadeUp 0.6s ease forwards;
         }
-
         @keyframes fadeInBg {
             from { background-color: rgba(0,0,0,0); }
             to { background-color: rgba(0,0,0,0.4); }
         }
-
         .auth-buttons {
             display: flex;
             gap: 10px;
             align-items: center;
+        }
+        .welcome-message {
+            margin-right: 10px;
+            font-weight: bold;
+            color: #fff;
+            font-size: 1.1rem;
         }
         .auth-buttons button {
             background: #003675;
@@ -331,140 +322,9 @@
             color: #003675;
             border: 1px solid #003675;
         }
-
     </style>
     <script>
-        function toggleIssueTab(tabName) {
-            const issues = document.querySelectorAll('.issue-tab');
-            issues.forEach(tab => tab.style.display = 'none');
-            document.getElementById(tabName).style.display = 'grid';
-            document.querySelectorAll('.tab-menu button').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.tab-menu button[data-tab="${tabName}"]`).classList.add('active');
-        }
-        window.addEventListener('DOMContentLoaded', () => {
-            toggleIssueTab('issue-tab-finance');
-            loadTodayNews(); // 이 부분 꼭 추가
-
-            const sections = document.querySelectorAll('section');
-            const indicators = document.querySelectorAll('.indicator button');
-            document.getElementById('fullpage').addEventListener('scroll', () => {
-                let scrollTop = document.getElementById('fullpage').scrollTop;
-                let index = Math.round(scrollTop / window.innerHeight);
-                indicators.forEach((btn, i) => {
-                    btn.classList.toggle('active', i === index);
-                });
-            });
-        });
-
-        function scrollToSection(i) {
-            document.getElementById('fullpage').scrollTo({
-                top: i * window.innerHeight,
-                behavior: 'smooth'
-            });
-        }
-
-        async function loadTodayNews() {
-            const response = await fetch('/api/news');
-            const newsList = await response.json();
-
-            const container = document.getElementById('issue-tab-finance');
-            container.innerHTML = '';
-
-            newsList.forEach(news => {
-                const card = document.createElement('div');
-                card.className = 'issue-card';
-                card.innerHTML = `
-                    <h3 onclick="loadNewsDetail(${news.id})">${news.title}</h3>
-                    <p>${news.publisher} | ${new Date(news.publishedAt).toLocaleDateString()}</p>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        async function loadNewsDetail(newsId) {
-            const response = await fetch(`/api/news/${newsId}`);
-            const news = await response.json();
-
-            const modal = document.createElement('div');
-            modal.className = 'news-modal';modal.innerHTML = `
-              <div class="modal-content news-style">
-                <button class="close-btn" onclick="document.body.removeChild(this.parentNode.parentNode)">✖</button>
-                <h2>${news.title}</h2>
-                <div class="news-meta">${news.publisher} | ${new Date(news.publishedAt).toLocaleDateString()}</div>
-                <div class="news-body">${news.content}</div>
-              </div>
-            `;
-            document.body.appendChild(modal);
-
-            // 강조된 단어 클릭 이벤트 추가
-            document.querySelectorAll('.news-body mark').forEach(el => {
-                el.style.cursor = 'pointer';
-                el.addEventListener('click', () => showTermPopup(el.innerText));
-            });
-        }
-        async function showTermPopup(term) {
-            // 이전에 열려 있던 용어 모달이 있다면 제거
-            const existingTermModal = document.getElementById('term-modal');
-            if (existingTermModal) {
-                document.body.removeChild(existingTermModal);
-            }
-
-            try {
-                const response = await fetch(`/api/terms/${encodeURIComponent(term)}`);
-                if (!response.ok) throw new Error("Not found");
-
-                const data = await response.json();
-
-                const modal = document.createElement('div');
-                modal.className = 'news-modal';
-                modal.id = 'term-modal'; // ✅ 용어 전용 모달 ID
-                modal.innerHTML = `
-                  <div class="modal-content news-style">
-                    <button class="close-btn" onclick="document.body.removeChild(this.parentNode.parentNode)">✖</button>
-                    <h2>📘 용어 해설: ${data.term}</h2>
-                    <div class="news-body">${data.description}</div>
-                    ${data.example ? `<div class="term-extra"><strong>예시:</strong> ${data.example}</div>` : ''}
-                  </div>
-                `;
-                document.body.appendChild(modal);
-            } catch (e) {
-                // 실패 시도에도 이전 용어 모달 제거
-                const existingErrorModal = document.getElementById('term-modal');
-                if (existingErrorModal) {
-                    document.body.removeChild(existingErrorModal);
-                }
-
-                const modal = document.createElement('div');
-                modal.className = 'news-modal';
-                modal.id = 'term-modal';
-                modal.innerHTML = `
-                  <div class="modal-content news-style">
-                    <button class="close-btn" onclick="document.body.removeChild(this.parentNode.parentNode)">✖</button>
-                    <h2>❗ 용어 정보를 찾을 수 없습니다.</h2>
-                    <div class="news-body">"${term}"에 대한 설명이 없습니다.</div>
-                  </div>
-                `;
-                document.body.appendChild(modal);
-            }
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                // 우선 term-modal이 있으면 그것만 닫는다
-                const termModal = document.getElementById('term-modal');
-                if (termModal) {
-                    document.body.removeChild(termModal);
-                    return; // ❗뉴스 모달은 유지
-                }
-
-                // term-modal이 없고, 뉴스 모달이 있을 때만 닫는다
-                const newsModal = document.querySelector('.news-modal');
-                if (newsModal) {
-                    document.body.removeChild(newsModal);
-                }
-            }
-        });
-
+        // ... existing code ...
     </script>
 </head>
 <body>
@@ -530,11 +390,13 @@
             </div>
         </div>
         <div class="auth-buttons">
-            <button onclick="location.href='/login'">로그인</button>
+            <span class="welcome-message"><span th:text="${user.nickname}"></span>님 환영합니다!</span>
+            <form action="/logout" method="post" style="display:inline;">
+                <button type="submit">로그아웃</button>
+            </form>
         </div>
     </div>
 </header>
-
 <div id="fullpage">
     <section class="home-hero">
         <h1>뉴스를 쉽고 빠르게 이해하는 금융 플랫폼</h1>
@@ -543,7 +405,6 @@
             <input type="text" placeholder="관심 있는 키워드를 입력하세요">
         </div>
     </section>
-
     <section class="section-wrapper">
         <h2>오늘의 이슈</h2>
         <div class="tab-menu">
@@ -551,18 +412,7 @@
             <button onclick="toggleIssueTab('issue-tab-interest')" data-tab="issue-tab-interest">나의 관심 뉴스</button>
         </div>
         <div class="issue-grid issue-tab" id="issue-tab-finance">
-            <div class="issue-card">
-                <h3>기준금리 동결 발표, 금융시장 안정 신호</h3>
-                <p>경제 | 관련 뉴스 54건</p>
-            </div>
-            <div class="issue-card">
-                <h3>코스피 소폭 반등, 외국인 순매수 지속</h3>
-                <p>금융 | 관련 뉴스 39건</p>
-            </div>
-            <div class="issue-card">
-                <h3>물가 상승률 둔화… 인플레이션 우려 완화</h3>
-                <p>경제 | 관련 뉴스 44건</p>
-            </div>
+            <!-- 동적으로 채워짐 -->
         </div>
         <div class="issue-grid issue-tab" id="issue-tab-interest">
             <div class="issue-card">
@@ -575,16 +425,127 @@
             </div>
         </div>
     </section>
-
     <section class="footer">
         &copy; 2025 STJ Team. All rights reserved.
     </section>
 </div>
-
 <div class="indicator">
     <button class="active" onclick="scrollToSection(0)"></button>
     <button onclick="scrollToSection(1)"></button>
     <button onclick="scrollToSection(2)"></button>
 </div>
+<script>
+    function toggleIssueTab(tabName) {
+        const issues = document.querySelectorAll('.issue-tab');
+        issues.forEach(tab => tab.style.display = 'none');
+        document.getElementById(tabName).style.display = 'grid';
+        document.querySelectorAll('.tab-menu button').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.tab-menu button[data-tab="${tabName}"]`).classList.add('active');
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+        toggleIssueTab('issue-tab-finance');
+        loadTodayNews();
+        const sections = document.querySelectorAll('section');
+        const indicators = document.querySelectorAll('.indicator button');
+        document.getElementById('fullpage').addEventListener('scroll', () => {
+            let scrollTop = document.getElementById('fullpage').scrollTop;
+            let index = Math.round(scrollTop / window.innerHeight);
+            indicators.forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        });
+    });
+    function scrollToSection(i) {
+        document.getElementById('fullpage').scrollTo({
+            top: i * window.innerHeight,
+            behavior: 'smooth'
+        });
+    }
+    async function loadTodayNews() {
+        const response = await fetch('/api/news');
+        const newsList = await response.json();
+        const container = document.getElementById('issue-tab-finance');
+        container.innerHTML = '';
+        newsList.forEach(news => {
+            const card = document.createElement('div');
+            card.className = 'issue-card';
+            card.innerHTML = `
+                <h3 onclick="loadNewsDetail(${news.id})">${news.title}</h3>
+                <p>${news.publisher} | ${new Date(news.publishedAt).toLocaleDateString()}</p>
+            `;
+            container.appendChild(card);
+        });
+    }
+    async function loadNewsDetail(newsId) {
+        const response = await fetch(`/api/news/${newsId}`);
+        const news = await response.json();
+        const modal = document.createElement('div');
+        modal.className = 'news-modal';modal.innerHTML = `
+          <div class="modal-content news-style">
+            <button class="close-btn" onclick="document.body.removeChild(this.parentNode.parentNode)">✖</button>
+            <h2>${news.title}</h2>
+            <div class="news-meta">${news.publisher} | ${new Date(news.publishedAt).toLocaleDateString()}</div>
+            <div class="news-body">${news.content}</div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        document.querySelectorAll('.news-body mark').forEach(el => {
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', () => showTermPopup(el.innerText));
+        });
+    }
+    async function showTermPopup(term) {
+        const existingTermModal = document.getElementById('term-modal');
+        if (existingTermModal) {
+            document.body.removeChild(existingTermModal);
+        }
+        try {
+            const response = await fetch(`/api/terms/${encodeURIComponent(term)}`);
+            if (!response.ok) throw new Error("Not found");
+            const data = await response.json();
+            const modal = document.createElement('div');
+            modal.className = 'news-modal';
+            modal.id = 'term-modal';
+            modal.innerHTML = `
+              <div class="modal-content news-style">
+                <button class="close-btn" onclick="document.body.removeChild(this.parentNode.parentNode)">✖</button>
+                <h2>📘 용어 해설: ${data.term}</h2>
+                <div class="news-body">${data.description}</div>
+                ${data.example ? `<div class="term-extra"><strong>예시:</strong> ${data.example}</div>` : ''}
+              </div>
+            `;
+            document.body.appendChild(modal);
+        } catch (e) {
+            const existingErrorModal = document.getElementById('term-modal');
+            if (existingErrorModal) {
+                document.body.removeChild(existingErrorModal);
+            }
+            const modal = document.createElement('div');
+            modal.className = 'news-modal';
+            modal.id = 'term-modal';
+            modal.innerHTML = `
+              <div class="modal-content news-style">
+                <button class="close-btn" onclick="document.body.removeChild(this.parentNode.parentNode)">✖</button>
+                <h2>❗ 용어 정보를 찾을 수 없습니다.</h2>
+                <div class="news-body">"${term}"에 대한 설명이 없습니다.</div>
+              </div>
+            `;
+            document.body.appendChild(modal);
+        }
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const termModal = document.getElementById('term-modal');
+            if (termModal) {
+                document.body.removeChild(termModal);
+                return;
+            }
+            const newsModal = document.querySelector('.news-modal');
+            if (newsModal) {
+                document.body.removeChild(newsModal);
+            }
+        }
+    });
+</script>
 </body>
 </html>

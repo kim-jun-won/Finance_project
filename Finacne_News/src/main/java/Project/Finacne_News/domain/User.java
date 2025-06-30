@@ -1,6 +1,7 @@
 package Project.Finacne_News.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,18 +18,20 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @NotEmpty
+    private String loginId; // 로그인 ID
 
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+    @NotEmpty
+    private String name; // 사용자 이름
+
+    @NotEmpty
+    @Column(name = "password", nullable = false)
+    private String password; // password
 
     private String nickname;
 
-    private String role;
+    //private String role;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Timestamp createdAt;
 
     // User - UserVocabulary
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
