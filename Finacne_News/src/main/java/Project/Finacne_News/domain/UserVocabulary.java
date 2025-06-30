@@ -10,9 +10,6 @@ import java.time.LocalDate;
 @Getter @Setter
 @Table(name = "user_vocabulary")
 public class UserVocabulary {
-    /** user와 term를 N:M 연결하기 위한 중간 객체 **/
-    // 동시에 사용자가 등록한 모르는 단어 관리
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_vocabulary_id")
