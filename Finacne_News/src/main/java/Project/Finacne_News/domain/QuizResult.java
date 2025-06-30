@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.security.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter
@@ -23,9 +23,9 @@ public class QuizResult {
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
 
-    private Integer score;
+    private int score;
 
     @Column(name = "taken_at")
-    private Timestamp takenAt;
+    private LocalDateTime takenAt;
 }
 

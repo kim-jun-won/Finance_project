@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Getter @Setter
 @Table(name = "glossaries")
@@ -25,4 +27,5 @@ public class Glossary {
 
     @Column(name = "example_usage", columnDefinition = "TEXT")
     private String exampleUsage;
+
 }
