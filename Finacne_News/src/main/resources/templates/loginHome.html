@@ -322,10 +322,112 @@
             color: #003675;
             border: 1px solid #003675;
         }
+        .news-actions-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-top: 28px;
+            margin-bottom: 8px;
+        }
+        .news-action-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            align-items: center;
+            margin: 0 0 18px 0;
+            padding-left: 2px;
+        }
+        .origin-btn {
+            background: linear-gradient(90deg, #f5f5f5 60%, #e0e7ef 100%);
+            color: #222;
+            border: 1.5px solid #d0d0d0;
+            padding: 0 14px;
+            height: 24px;
+            min-width: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 1px 6px #e0e7ef33;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+        .origin-btn:hover {
+            background: linear-gradient(90deg, #e0e7ef 60%, #f5f5f5 100%);
+            color: #0057a0;
+            box-shadow: 0 2px 9px #b3e0ff33;
+        }
+        .ai-summary-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .ai-btn-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb 60%, #60a5fa 100%);
+            color: #fff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: bold;
+            box-shadow: 0 1px 6px #2563eb33;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+            outline: none;
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+        .ai-btn-circle:hover, .ai-btn-circle:focus {
+            background: linear-gradient(135deg, #003675 60%, #2563eb 100%);
+            box-shadow: 0 2px 9px #2563eb55;
+            transform: scale(1.08);
+        }
+        .ai-icon {
+            font-size: 1.35em;
+            margin: 0;
+            pointer-events: none;
+        }
+        .ai-summary-options {
+            position: absolute;
+            top: 110%;
+            left: 0;
+            transform: none;
+            background: #fff;
+            border: 1.5px solid #2563eb;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px #2563eb22;
+            z-index: 10;
+            padding: 10px 0;
+            width: 70px;
+            animation: fadeUp 0.18s;
+        }
+        .ai-summary-options button {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            color: #2563eb;
+            padding: 8px 0;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-radius: 0;
+            transition: background 0.15s;
+        }
+        .ai-summary-options button:hover {
+            background: #e0e7ef;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
-    <script>
-        // ... existing code ...
-    </script>
 </head>
 <body>
 <header>
@@ -435,6 +537,9 @@
     <button onclick="scrollToSection(2)"></button>
 </div>
 <script>
+    /*<![CDATA[*/
+    window.userId = [[${user.id}]];
+    /*]]>*/
     function toggleIssueTab(tabName) {
         const issues = document.querySelectorAll('.issue-tab');
         issues.forEach(tab => tab.style.display = 'none');
@@ -470,7 +575,7 @@
             const card = document.createElement('div');
             card.className = 'issue-card';
             card.innerHTML = `
-                <h3 onclick="loadNewsDetail(${news.id})">${news.title}</h3>
+                <h3 onclick='loadNewsDetail(${news.id})'>${news.title}</h3>
                 <p>${news.publisher} | ${new Date(news.publishedAt).toLocaleDateString()}</p>
             `;
             container.appendChild(card);
@@ -480,19 +585,52 @@
         const response = await fetch(`/api/news/${newsId}`);
         const news = await response.json();
         const modal = document.createElement('div');
-        modal.className = 'news-modal';modal.innerHTML = `
-          <div class="modal-content news-style">
-            <button class="close-btn" onclick="document.body.removeChild(this.parentNode.parentNode)">✖</button>
-            <h2>${news.title}</h2>
-            <div class="news-meta">${news.publisher} | ${new Date(news.publishedAt).toLocaleDateString()}</div>
-            <div class="news-body">${news.content}</div>
-          </div>
-        `;
+        modal.className = 'news-modal';
+        modal.innerHTML = '<div class="modal-content news-style">' +
+            '<button class="close-btn" onclick="document.body.removeChild(this.parentNode.parentNode)">✖</button>' +
+            '<h2>' + news.title + '</h2>' +
+            '<div class="news-meta">' + news.publisher + ' | ' + new Date(news.publishedAt).toLocaleDateString() + '</div>' +
+            '<div class="news-action-bar">' +
+                '<button class="origin-btn" onclick="window.open(\'' + news.url + '\',\'_blank\')">기사원문</button>' +
+                '<div class="ai-summary-group">' +
+                    '<button class="ai-btn-circle" onclick="toggleAISummaryOptions(this)" title="AI 요약">AI</button>' +
+                    '<div class="ai-summary-options" style="display:none;">' +
+                        '<button onclick="requestSummary(' + news.id + ', \'normal\', this)">일반 요약</button>' +
+                        '<button onclick="requestSummary(' + news.id + ', \'custom\', this)">맞춤 요약</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="news-body">' + news.content + '</div>' +
+            '<div id="ai-summary-result"></div>' +
+        '</div>';
         document.body.appendChild(modal);
         document.querySelectorAll('.news-body mark').forEach(el => {
             el.style.cursor = 'pointer';
             el.addEventListener('click', () => showTermPopup(el.innerText));
         });
+    }
+    function toggleAISummaryOptions(btn) {
+        const options = btn.nextElementSibling;
+        options.style.display = options.style.display === 'none' ? 'block' : 'none';
+    }
+    async function requestSummary(newsId, type, btn) {
+        if (!window.userId) {
+            alert('로그인 후 이용 가능합니다.');
+            return;
+        }
+        btn.disabled = true;
+        btn.innerText = '요약 중...';
+        const endpoint = type === 'normal' ? '/api/summarize' : '/api/summarize/chat';
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ newsId: newsId, userId: window.userId })
+        });
+        const summary = await res.text();
+        document.getElementById('ai-summary-result').innerHTML = `<div class='ai-summary-box'><b>AI 요약 결과:</b><br>${summary}</div>`;
+        btn.disabled = false;
+        btn.innerText = type === 'normal' ? '일반 요약' : '맞춤 요약';
+        btn.parentNode.style.display = 'none';
     }
     async function showTermPopup(term) {
         const existingTermModal = document.getElementById('term-modal');

@@ -30,8 +30,9 @@ public class User {
 
     private String nickname;
 
-    //private String role;
+    private String job;
 
+    private String goal;
 
     // User - UserVocabulary
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

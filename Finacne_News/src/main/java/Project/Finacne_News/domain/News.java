@@ -28,6 +28,8 @@ public class News {
 
     private String publisher;
 
+    private String url; // 기사 원문 URL
+
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 

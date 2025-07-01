@@ -15,4 +15,5 @@ public class NewsRequestDto {
     private String content;
     private String publisher;
     private LocalDateTime publishedAt;
+    private String url;
 }
